@@ -29,3 +29,16 @@ pywebview>=4.4
 
 # ── Packaging ─────────────────────────────────────────────────────────────
 pyinstaller>=6.0
+django>=4.0
+scikit-learn
+pandas
+numpy
+joblib
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+# Production deployment
+gunicorn
+whitenoise
+psycopg2-binary
+dj-database-url
