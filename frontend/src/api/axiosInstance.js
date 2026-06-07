@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 // ── Dynamic base URL ──────────────────────────────────────────────────────
-// In desktop mode: the React build is served BY Django on port 5000.
-//   window.location.origin = "http://127.0.0.1:5000"  →  API at same origin.
-// In Vite dev mode: Vite runs on 5173 and proxies /api → Django 8000.
-//   window.location.origin = "http://localhost:5173"  →  proxy handles it.
-// So we always use a relative /api path — works in both scenarios.
-const BASE_URL = '/api';
+// In production (Vercel): VITE_API_URL is set to the full Render backend URL.
+//   e.g. https://kids-hobby-prediction-new.onrender.com/api
+// In Vite dev mode: no VITE_API_URL → falls back to relative /api
+//   which Vite proxies to Django on port 8000.
+// In desktop mode: relative /api served by Django at same origin.
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
