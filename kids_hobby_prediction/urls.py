@@ -17,6 +17,7 @@ from django.conf import settings
 from django.views.generic import TemplateView
 from django.views.static import serve as static_serve
 from django.template.response import TemplateResponse
+from django.http import JsonResponse
 
 def splash_view(request):
     """Splash page with no-cache headers so WebKit2 always loads fresh HTML."""
@@ -26,9 +27,14 @@ def splash_view(request):
     response['Expires'] = '0'
     return response
 
+def health_check(request):
+    """Health check endpoint — returns 200 OK so cron pingers get a green status."""
+    return JsonResponse({'status': 'ok'})
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('prediction.api_urls')),
+    path('api/health/', health_check, name='health-check'),
     # Splash intro page — no-cache so changes show immediately
     path('splash/', splash_view, name='splash'),
 ]
