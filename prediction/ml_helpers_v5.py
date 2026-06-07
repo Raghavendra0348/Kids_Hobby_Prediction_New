@@ -178,19 +178,26 @@ HOBBY_RULES = {
 def load_model():
     for v in ['v5','v4','v3']:
         try:
-            m  = joblib.load(os.path.join(SAVE_DIR, f'model_{v}.pkl'))
-            le = joblib.load(os.path.join(SAVE_DIR, f'label_encoders_{v}.pkl'))
-            te = joblib.load(os.path.join(SAVE_DIR, f'target_encoder_{v}.pkl'))
-            print(f'[ml_helpers_v5] Loaded {v} model')
-            return m, le, te
+            m   = joblib.load(os.path.join(SAVE_DIR, f'model_{v}.pkl'))
+            le  = joblib.load(os.path.join(SAVE_DIR, f'label_encoders_{v}.pkl'))
+            te  = joblib.load(os.path.join(SAVE_DIR, f'target_encoder_{v}.pkl'))
+            # Load the actual feature columns the model was trained on
+            try:
+                fc = joblib.load(os.path.join(SAVE_DIR, f'feature_cols_{v}.pkl'))
+            except Exception:
+                fc = FEATURE_COLS  # fallback to hardcoded list
+            print(f'[ml_helpers_v5] Loaded {v} model with {len(fc)} features')
+            return m, le, te, fc
         except Exception:
             pass
-    return None, None, None
+    return None, None, None, FEATURE_COLS
 
 
-def build_feature_vector(answers, label_encs):
+def build_feature_vector(answers, label_encs, feature_cols=None):
+    """Build feature vector using the exact columns the model was trained on."""
+    cols = feature_cols if feature_cols is not None else FEATURE_COLS
     encoded = []
-    for col in FEATURE_COLS:
+    for col in cols:
         raw = answers.get(col, 'None')
         if col in NUMERIC_COLS:
             try:    encoded.append(float(raw))
@@ -424,14 +431,14 @@ def build_reason(category, hobby, role, answers):
 
 
 def predict_hobby_v5(answers):
-    model, label_encs, target_enc = load_model()
+    model, label_encs, target_enc, feature_cols = load_model()
     if model is None:
         return None
 
     health_cond = str(answers.get('health_condition','None'))
     all_classes = list(target_enc.classes_)
 
-    vec   = build_feature_vector(answers, label_encs)
+    vec   = build_feature_vector(answers, label_encs, feature_cols)
     probs = model.predict_proba(vec)[0]
 
     # Categories removed from the questionnaire — never surface these
